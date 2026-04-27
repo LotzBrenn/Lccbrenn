@@ -224,7 +224,7 @@ export default function Base() {
                             <h3>My Projects</h3>
                             <p>Explore my projects and contributions on GitHub</p>
                             <a
-                                href="https://github.com/yourusername"
+                                href="https://github.com/lotzbrenn"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="visit-btn"

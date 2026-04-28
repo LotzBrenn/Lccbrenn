@@ -40,9 +40,9 @@ body {
   align-items: center;
   gap: 6px;
   padding: 12px 14px;
-  background: rgba(20, 30, 50, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(100, 200, 255, 0.15);
+  background: none;
+  /* backdrop-filter: blur(10px); */
+  border: none;
   border-radius: 10px;
   color: rgba(200, 220, 255, 0.9);
   cursor: pointer;
@@ -52,10 +52,10 @@ body {
 }
 
 .desktop-shortcut:hover {
-  background: rgba(30, 40, 60, 0.8);
-  border-color: rgba(100, 200, 255, 0.3);
-  transform: translateX(5px);
-  box-shadow: 0 5px 20px rgba(100, 200, 255, 0.1);
+  /* background: rgba(30, 40, 60, 0.8); */
+  /* border-color: rgba(100, 200, 255, 0.3); */
+  transform: scale(1.1);
+  /* box-shadow: 0 5px 20px rgba(100, 200, 255, 0.1); */
 }
 
 .shortcut-icon {
@@ -68,6 +68,7 @@ body {
   border-radius: 12px;
   border: 1px solid rgba(100, 200, 255, 0.2);
   transition: all 0.3s ease;
+  line-height: 3px;
 }
 
 .desktop-shortcut:hover .shortcut-icon {

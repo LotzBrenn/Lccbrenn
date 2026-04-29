@@ -382,11 +382,10 @@ export default function Base() {
                             className="start-menu-item"
                             onClick={() => {
                                 toggleTheme();
-                                setStartMenuOpen(false);
                             }}
                         >
                             <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
-                            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                         </button>
                     </div>
                 </div>

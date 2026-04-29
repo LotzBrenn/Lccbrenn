@@ -145,6 +145,19 @@ body {
   justify-content: center;
 }
 
+button,
+.desktop-shortcut,
+.taskbar-btn,
+.taskbar-shortcut,
+.start-menu-item,
+.window-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .taskbar-btn {
   background: none;
   border: none;
@@ -192,8 +205,10 @@ body {
 /* ============ SYSTEM WINDOW ============ */
 .system-window {
   position: fixed;
-  width: 500px;
+  width: min(500px, 90vw);
+  min-width: 280px;
   min-height: 300px;
+  max-height: 80vh;
   background: rgba(10, 15, 25, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-glow);
@@ -202,6 +217,8 @@ body {
     0 0 0 1px var(--border-glow);
   z-index: 100;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: windowFadeIn 0.3s ease;
 }
 
@@ -226,6 +243,7 @@ body {
   border-bottom: 1px solid var(--border-glow);
   cursor: move;
   user-select: none;
+  touch-action: none;
 }
 
 .window-title {
@@ -262,6 +280,9 @@ body {
 }
 
 .window-body {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 30px;
   color: var(--text-primary);
   background: var(--card-bg);
@@ -370,13 +391,16 @@ body {
   bottom: 60px;
   left: 15px;
   width: 400px;
+  max-width: calc(100vw - 30px);
+  max-height: calc(100vh - 80px);  /* tinggi maksimal disesuaikan */
   background: var(--bg-primary);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-glow);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   z-index: 150;
-  overflow: hidden;
+  overflow-y: auto;   /* scroll di parent, bukan di grid */
+  overflow-x: hidden;
   animation: startMenuFadeIn 0.2s ease;
 }
 
@@ -412,9 +436,7 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  padding: 20px;
-  max-height: 400px;
-  overflow-y: auto;
+   padding: 20px 20px 30px 20px;
 }
 
 .start-menu-item {
@@ -448,6 +470,8 @@ body {
   transform: scale(1.02);
 }
 
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .desktop-shortcuts {
@@ -475,8 +499,11 @@ body {
   }
 
   .system-window {
-    width: 90vw;
-    min-height: 250px;
+    width: 90vw !important;
+    left: 5vw !important;
+    top: 10vh !important;
+    transform: none !important;
+    max-height: 70vh;
   }
 
   .window-content-socials {

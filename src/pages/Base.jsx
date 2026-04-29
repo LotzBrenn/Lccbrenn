@@ -14,6 +14,11 @@ export default function Base() {
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'dark';
     });
+    const lastDragRippleTime = useRef(0);
+
+    const addRipple = (x, y) => {
+        ripplesRef.current.push(new Ripple(x, y));
+    };
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -24,9 +29,81 @@ export default function Base() {
     const startMenuRef = useRef(null);
     const dragStartRef = useRef({ x: 0, y: 0 })
     const windowRef = useRef(null)
+    const handleWindowDragStart = (e) => {
+        if (e.target.closest('.window-controls')) return;
+        setIsDragging(true);
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartRef.current = { x: clientX, y: clientY };
+    };
+
+    const clampWindowPos = (pos) => {
+        const maxX = window.innerWidth - 300;  // asumsi min lebar window 300px
+        const maxY = window.innerHeight - 150; // asumsi min tinggi 150px
+        return {
+            x: Math.min(Math.max(pos.x, 0), maxX),
+            y: Math.min(Math.max(pos.y, 0), maxY)
+        };
+    };
+
+    const handleWindowDragMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        // Throttle ripple (maksimal setiap 50ms)
+        const now = Date.now();
+        if (!lastDragRippleTime.current || now - lastDragRippleTime.current > 50) {
+            ripplesRef.current.push(new Ripple(clientX, clientY));
+            lastDragRippleTime.current = now;
+        }
+
+        const dx = clientX - dragStartRef.current.x;
+        const dy = clientY - dragStartRef.current.y;
+        setWindowPos(prev => clampWindowPos({
+            x: prev.x + dx,
+            y: prev.y + dy
+        }));
+        dragStartRef.current = { x: clientX, y: clientY };
+    };
+
+    const handleWindowDragEnd = () => {
+        setIsDragging(false);
+    };
     const toggleTheme = () => {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };
+
+    class Ripple {
+        constructor(x, y) {
+            this.x = x
+            this.y = y
+            this.radius = 0
+            this.maxRadius = 100
+            this.opacity = 0.5
+            this.speed = 1.5
+            this.fadeSpeed = 0.008
+        }
+
+        update() {
+            this.radius += this.speed
+            this.opacity -= this.fadeSpeed
+            return this.opacity > 0 && this.radius < this.maxRadius
+        }
+
+        draw(ctx) {
+            const rippleRGB = getComputedStyle(document.documentElement)
+                .getPropertyValue('--ripple-color').trim();
+
+            ctx.beginPath()
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+            ctx.strokeStyle = `rgba(${rippleRGB}, ${this.opacity * 0.3})`
+            ctx.lineWidth = 1.5
+            ctx.stroke()
+        }
+    }
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -41,34 +118,8 @@ export default function Base() {
         resizeCanvas()
         window.addEventListener('resize', resizeCanvas)
 
-        class Ripple {
-            constructor(x, y) {
-                this.x = x
-                this.y = y
-                this.radius = 0
-                this.maxRadius = 100
-                this.opacity = 0.5
-                this.speed = 1.5
-                this.fadeSpeed = 0.008
-            }
-
-            update() {
-                this.radius += this.speed
-                this.opacity -= this.fadeSpeed
-                return this.opacity > 0 && this.radius < this.maxRadius
-            }
-
-            draw(ctx) {
-                const rippleRGB = getComputedStyle(document.documentElement)
-                    .getPropertyValue('--ripple-color').trim();
-
-                ctx.beginPath()
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
-                ctx.strokeStyle = `rgba(${rippleRGB}, ${this.opacity * 0.3})`
-                ctx.lineWidth = 1.5
-                ctx.stroke()
-            }
-        }
+        const rippleColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--ripple-color').trim();
 
         const drawGrid = (ctx, width, height) => {
             const gridSize = 40
@@ -98,7 +149,7 @@ export default function Base() {
             ripplesRef.current = ripplesRef.current.filter(ripple => {
                 const isAlive = ripple.update()
                 if (isAlive) {
-                    ripple.draw(ctx)
+                    ripple.draw(ctx, rippleColor)
                 }
                 return isAlive
             })
@@ -111,16 +162,6 @@ export default function Base() {
             if (!mouseRef.current.lastRippleTime || now - mouseRef.current.lastRippleTime > 50) {
                 ripplesRef.current.push(new Ripple(e.clientX, e.clientY))
                 mouseRef.current.lastRippleTime = now
-            }
-
-            if (isDragging) {
-                const dx = e.clientX - dragStartRef.current.x
-                const dy = e.clientY - dragStartRef.current.y
-                setWindowPos(prev => ({
-                    x: prev.x + dx,
-                    y: prev.y + dy
-                }))
-                dragStartRef.current = { x: e.clientX, y: e.clientY }
             }
         }
 
@@ -153,20 +194,15 @@ export default function Base() {
         }
     }, [isDragging, windowPos.x, windowPos.y]) // Fixed dependency array
 
-    const handleWindowDragStart = (e) => {
-        if (e.target.closest('.window-controls')) return
-        setIsDragging(true)
-        dragStartRef.current = { x: e.clientX, y: e.clientY }
-    }
 
     const centerWindow = () => {
-        const windowWidth = 500
-        const windowHeight = 300
-        setWindowPos({
+        const windowWidth = Math.min(500, window.innerWidth - 40);
+        const windowHeight = 300;
+        setWindowPos(clampWindowPos({
             x: (window.innerWidth - windowWidth) / 2,
             y: (window.innerHeight - windowHeight) / 2
-        })
-    }
+        }));
+    };
 
     const openWindow = (type) => {
         setActiveWindow(type)
@@ -404,6 +440,9 @@ export default function Base() {
                     <div
                         className="window-titlebar"
                         onMouseDown={handleWindowDragStart}
+                        onTouchStart={handleWindowDragStart}
+                        onTouchMove={handleWindowDragMove}
+                        onTouchEnd={handleWindowDragEnd}
                     >
                         <div className="window-title">
                             <i className={`bi ${activeWindow === 'socials' ? 'bi-people' :

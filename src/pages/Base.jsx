@@ -14,8 +14,7 @@ export default function Base() {
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'dark';
     });
-    const lastDragRippleTime = useRef(0);
-
+    
     const addRipple = (x, y) => {
         ripplesRef.current.push(new Ripple(x, y));
     };
@@ -29,6 +28,8 @@ export default function Base() {
     const startMenuRef = useRef(null);
     const dragStartRef = useRef({ x: 0, y: 0 })
     const windowRef = useRef(null)
+    const titlebarRef = useRef(null);
+
     const handleWindowDragStart = (e) => {
         if (e.target.closest('.window-controls')) return;
         setIsDragging(true);
@@ -53,13 +54,7 @@ export default function Base() {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-        // Throttle ripple (maksimal setiap 50ms)
-        const now = Date.now();
-        if (!lastDragRippleTime.current || now - lastDragRippleTime.current > 50) {
-            ripplesRef.current.push(new Ripple(clientX, clientY));
-            lastDragRippleTime.current = now;
-        }
-
+        ripplesRef.current.push(new Ripple(clientX, clientY));
         const dx = clientX - dragStartRef.current.x;
         const dy = clientY - dragStartRef.current.y;
         setWindowPos(prev => clampWindowPos({
@@ -72,6 +67,53 @@ export default function Base() {
     const handleWindowDragEnd = () => {
         setIsDragging(false);
     };
+
+    useEffect(() => {
+        const titlebar = titlebarRef.current;
+        if (!titlebar) return;
+
+        const handleTouchStart = (e) => {
+            if (e.target.closest('.window-controls')) return;
+            setIsDragging(true);
+            const touch = e.touches[0];
+            dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+            e.preventDefault(); // mencegah scroll halaman
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const clientX = touch.clientX;
+            const clientY = touch.clientY;
+
+            // Tambahkan ripple setiap move (tanpa throttle agar mengikuti jari)
+            ripplesRef.current.push(new Ripple(clientX, clientY));
+
+            const dx = clientX - dragStartRef.current.x;
+            const dy = clientY - dragStartRef.current.y;
+            setWindowPos(prev => clampWindowPos({
+                x: prev.x + dx,
+                y: prev.y + dy
+            }));
+            dragStartRef.current = { x: clientX, y: clientY };
+        };
+
+        const handleTouchEnd = () => {
+            setIsDragging(false);
+        };
+
+        titlebar.addEventListener('touchstart', handleTouchStart, { passive: false });
+        titlebar.addEventListener('touchmove', handleTouchMove, { passive: false });
+        titlebar.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            titlebar.removeEventListener('touchstart', handleTouchStart);
+            titlebar.removeEventListener('touchmove', handleTouchMove);
+            titlebar.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [isDragging]); // isDragging sebagai dependency agar handler move bisa membaca state terbaru
+
     const toggleTheme = () => {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };
@@ -149,7 +191,7 @@ export default function Base() {
             ripplesRef.current = ripplesRef.current.filter(ripple => {
                 const isAlive = ripple.update()
                 if (isAlive) {
-                    ripple.draw(ctx, rippleColor)
+                    ripple.draw(ctx)
                 }
                 return isAlive
             })
@@ -438,11 +480,9 @@ export default function Base() {
                     }}
                 >
                     <div
+                        ref={titlebarRef}
                         className="window-titlebar"
                         onMouseDown={handleWindowDragStart}
-                        onTouchStart={handleWindowDragStart}
-                        onTouchMove={handleWindowDragMove}
-                        onTouchEnd={handleWindowDragEnd}
                     >
                         <div className="window-title">
                             <i className={`bi ${activeWindow === 'socials' ? 'bi-people' :

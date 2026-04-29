@@ -10,8 +10,23 @@ export default function Base() {
     const [activeWindow, setActiveWindow] = useState(null)
     const [isDragging, setIsDragging] = useState(false)
     const [windowPos, setWindowPos] = useState({ x: 0, y: 0 })
+    const [startMenuOpen, setStartMenuOpen] = useState(false);
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('theme') || 'dark';
+    });
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+
+    const startMenuRef = useRef(null);
     const dragStartRef = useRef({ x: 0, y: 0 })
     const windowRef = useRef(null)
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -44,9 +59,12 @@ export default function Base() {
             }
 
             draw(ctx) {
+                const rippleRGB = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--ripple-color').trim();
+
                 ctx.beginPath()
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
-                ctx.strokeStyle = `rgba(100, 200, 255, ${this.opacity * 0.3})`
+                ctx.strokeStyle = `rgba(${rippleRGB}, ${this.opacity * 0.3})`
                 ctx.lineWidth = 1.5
                 ctx.stroke()
             }
@@ -158,6 +176,20 @@ export default function Base() {
     const closeWindow = () => {
         setActiveWindow(null)
     }
+
+    const toggleStartMenu = () => setStartMenuOpen(prev => !prev);
+
+    // Tutup start menu jika klik di luar
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (startMenuRef.current && !startMenuRef.current.contains(event.target) &&
+                !event.target.closest('.taskbar-btn')) {
+                setStartMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Social media links
     const socialLinks = [
@@ -299,10 +331,11 @@ export default function Base() {
             {/* Taskbar - Bawah */}
             <div className="taskbar">
                 <div className="taskbar-left">
-                    <button className="taskbar-btn">
+                    <button className="taskbar-btn" onClick={toggleStartMenu}>
                         <i className="bi bi-grid-3x3-gap-fill"></i>
                     </button>
                 </div>
+
 
                 {/* <div className="taskbar-center">
                     {desktopShortcuts.map((shortcut, index) => (
@@ -323,6 +356,41 @@ export default function Base() {
                     </span>
                 </div>
             </div>
+
+            {/* Start Menu Card */}
+            {startMenuOpen && (
+                <div className="start-menu" ref={startMenuRef}>
+                    <div className="start-menu-header">
+                        <i className="bi bi-person-circle"></i>
+                        <span>User</span>
+                    </div>
+                    <div className="start-menu-grid">
+                        {desktopShortcuts.map((shortcut, idx) => (
+                            <button
+                                key={idx}
+                                className="start-menu-item"
+                                onClick={() => {
+                                    openWindow(shortcut.action);
+                                    setStartMenuOpen(false);
+                                }}
+                            >
+                                <i className={`bi ${shortcut.icon}`}></i>
+                                <span>{shortcut.name}</span>
+                            </button>
+                        ))}
+                        <button
+                            className="start-menu-item"
+                            onClick={() => {
+                                toggleTheme();
+                                setStartMenuOpen(false);
+                            }}
+                        >
+                            <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
+                            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Modal Window */}
             {activeWindow && (

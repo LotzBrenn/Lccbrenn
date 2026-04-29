@@ -7,8 +7,28 @@
 
 body {
   overflow: hidden;
-  background: #0a0a0f;
+  background: var(--bg-primary);
   font-family: 'Courier New', monospace;
+}
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-taskbar: rgba(10, 15, 25, 0.9);
+  --text-primary: rgba(200, 220, 255, 0.9);
+  --border-glow: rgba(100, 200, 255, 0.3);
+  --card-bg: rgba(10, 15, 25, 0.95);
+  --icon-color: rgba(100, 200, 255, 0.8);
+  --ripple-color: 100, 200, 255;
+}
+
+[data-theme="light"] {
+  --bg-primary: #adc0de;
+  --bg-taskbar: rgba(155, 170, 194, 0.9);
+  --text-primary: #1e2a3a;
+  --border-glow: rgba(0, 100, 150, 0.3);
+  --card-bg: rgba(211, 224, 246, 0.95);
+  --icon-color: #0a5c7e;
+  --ripple-color: 0, 100, 150;
 }
 
 /* Canvas Background */
@@ -19,7 +39,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #0a0a0f;
+  background: var(--bg-primary);
   z-index: 0;
 }
 
@@ -44,7 +64,7 @@ body {
   /* backdrop-filter: blur(10px); */
   border: none;
   border-radius: 10px;
-  color: rgba(200, 220, 255, 0.9);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 90px;
@@ -64,21 +84,21 @@ body {
   justify-content: center;
   width: 50px;
   height: 50px;
-  background: rgba(100, 200, 255, 0.1);
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 1px solid rgba(100, 200, 255, 0.2);
+  border: 1px solid var(--border-glow);
   transition: all 0.3s ease;
   line-height: 3px;
 }
 
 .desktop-shortcut:hover .shortcut-icon {
-  background: rgba(100, 200, 255, 0.2);
-  border-color: rgba(100, 200, 255, 0.4);
+  background: var(--card-bg);
+  border-color: var(--border-glow);
 }
 
 .shortcut-icon i {
   font-size: 24px;
-  color: rgba(100, 200, 255, 0.8);
+  color: var(--icon-color);
   transition: transform 0.3s ease;
 }
 
@@ -88,7 +108,7 @@ body {
 
 .shortcut-name {
   font-size: 11px;
-  color: rgba(200, 220, 255, 0.8);
+  color: var(--text-primary);
   text-align: center;
   letter-spacing: 0.5px;
 }
@@ -100,9 +120,9 @@ body {
   left: 0;
   right: 0;
   height: 50px;
-  background: rgba(10, 15, 25, 0.9);
+  background: var(--bg-taskbar);
   backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(100, 200, 255, 0.15);
+  border-top: 1px solid var(--border-glow);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -128,7 +148,7 @@ body {
 .taskbar-btn {
   background: none;
   border: none;
-  color: rgba(100, 200, 255, 0.8);
+  color: var(--icon-color);
   font-size: 20px;
   cursor: pointer;
   padding: 8px;
@@ -137,13 +157,13 @@ body {
 }
 
 .taskbar-btn:hover {
-  background: rgba(100, 200, 255, 0.1);
+  background: var(--card-bg);
 }
 
 .taskbar-shortcut {
-  background: rgba(30, 40, 60, 0.6);
-  border: 1px solid rgba(100, 200, 255, 0.1);
-  color: rgba(100, 200, 255, 0.7);
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  color: var(--text-primary);
   padding: 8px 15px;
   border-radius: 8px;
   cursor: pointer;
@@ -153,18 +173,18 @@ body {
 }
 
 .taskbar-shortcut:hover {
-  background: rgba(40, 50, 70, 0.8);
-  border-color: rgba(100, 200, 255, 0.3);
+  background: var(--card-bg);
+  border-color: var(--border-glow);
 }
 
 .taskbar-shortcut.active {
-  background: rgba(100, 200, 255, 0.2);
-  border-color: rgba(100, 200, 255, 0.4);
-  box-shadow: 0 0 10px rgba(100, 200, 255, 0.2);
+  background: var(--card-bg);
+  border-color: var(--border-glow);
+  box-shadow: 0 0 10px var(--border-glow);
 }
 
 .taskbar-time {
-  color: rgba(200, 220, 255, 0.8);
+  color: var(--text-primary);
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -176,10 +196,10 @@ body {
   min-height: 300px;
   background: rgba(10, 15, 25, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(100, 200, 255, 0.3);
+  border: 1px solid var(--border-glow);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(100, 200, 255, 0.1);
+    0 0 0 1px var(--border-glow);
   z-index: 100;
   overflow: hidden;
   animation: windowFadeIn 0.3s ease;
@@ -202,8 +222,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: rgba(20, 30, 50, 0.9);
-  border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+  background: var(--bg-taskbar);
+  border-bottom: 1px solid var(--border-glow);
   cursor: move;
   user-select: none;
 }
@@ -212,7 +232,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(100, 200, 255, 0.9);
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: bold;
 }
@@ -229,7 +249,7 @@ body {
 .window-close {
   background: none;
   border: none;
-  color: rgba(255, 100, 100, 0.8);
+  color: var(--icon-color);
   cursor: pointer;
   padding: 5px;
   border-radius: 5px;
@@ -237,13 +257,13 @@ body {
 }
 
 .window-close:hover {
-  background: rgba(255, 100, 100, 0.2);
-  color: rgba(255, 100, 100, 1);
+  background: var(--card-bg);
+  color: var(--icon-color);
 }
 
 .window-body {
   padding: 30px;
-  color: rgba(200, 220, 255, 0.9);
+  color: var(--text-primary);
 }
 
 /* Window Content Styles */
@@ -258,10 +278,10 @@ body {
   align-items: center;
   gap: 12px;
   padding: 15px;
-  background: rgba(30, 40, 60, 0.6);
-  border: 1px solid rgba(100, 200, 255, 0.15);
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
   border-radius: 8px;
-  color: rgba(200, 220, 255, 0.9);
+  color: var(--text-primary);
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -272,10 +292,10 @@ body {
 }
 
 .social-link:hover {
-  background: rgba(40, 50, 70, 0.8);
-  border-color: rgba(100, 200, 255, 0.4);
+  background: var(--card-bg);
+  border-color: var(--border-glow);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(100, 200, 255, 0.1);
+  box-shadow: 0 5px 15px var(--border-glow);
 }
 
 .social-link:hover i {
@@ -310,10 +330,10 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: rgba(100, 200, 255, 0.1);
-  border: 1px solid rgba(100, 200, 255, 0.3);
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
   border-radius: 8px;
-  color: rgba(100, 200, 255, 0.9);
+  color: var(--text-primary);
   text-decoration: none;
   transition: all 0.3s ease;
   font-size: 14px;
@@ -321,8 +341,8 @@ body {
 }
 
 .visit-btn:hover {
-  background: rgba(100, 200, 255, 0.2);
-  border-color: rgba(100, 200, 255, 0.5);
+  background: var(--card-bg);
+  border-color: var(--border-glow);
 }
 
 .contact-placeholder,
@@ -331,8 +351,8 @@ body {
   align-items: center;
   gap: 10px;
   padding: 15px 20px;
-  background: rgba(30, 40, 60, 0.6);
-  border: 1px solid rgba(100, 200, 255, 0.15);
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
   border-radius: 8px;
   margin-top: 10px;
 }
@@ -340,7 +360,91 @@ body {
 .contact-placeholder i,
 .mystery-box i {
   font-size: 20px;
-  color: rgba(100, 200, 255, 0.6);
+  color: var(--icon-color);
+}
+
+/* ============ START MENU (Windows-like) ============ */
+.start-menu {
+  position: fixed;
+  bottom: 60px;
+  left: 15px;
+  width: 400px;
+  background: var(--bg-primary);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 150;
+  overflow: hidden;
+  animation: startMenuFadeIn 0.2s ease;
+}
+
+@keyframes startMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.start-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-taskbar);
+  border-bottom: 1px solid var(--border-glow);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.start-menu-header i {
+  font-size: 24px;
+}
+
+.start-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.start-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  border-radius: 10px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.start-menu-item i {
+  font-size: 24px;
+  color: var(--icon-color);
+}
+
+.start-menu-item span {
+  font-size: 11px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.start-menu-item:hover {
+  background: var(--card-bg);
+  border-color: var(--border-glow);
+  transform: scale(1.02);
 }
 
 /* Responsive Design */
@@ -387,4 +491,5 @@ body {
     font-size: 14px;
     min-width: 35px;
   }
+
 }

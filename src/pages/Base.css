@@ -264,6 +264,7 @@ body {
 .window-body {
   padding: 30px;
   color: var(--text-primary);
+  background: var(--card-bg);
 }
 
 /* Window Content Styles */
@@ -321,7 +322,7 @@ body {
 .contact-info>i,
 .coming-soon-info>i {
   font-size: 48px;
-  color: rgba(100, 200, 255, 0.6);
+  color: var(--icon-color);
   margin-bottom: 10px;
 }
 

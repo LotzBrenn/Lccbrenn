@@ -10,113 +10,59 @@ export default function Base() {
     const [activeWindow, setActiveWindow] = useState(null)
     const [isDragging, setIsDragging] = useState(false)
     const [windowPos, setWindowPos] = useState({ x: 0, y: 0 })
-    const [startMenuOpen, setStartMenuOpen] = useState(false);
+    const [startMenuOpen, setStartMenuOpen] = useState(false)
     const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'dark';
-    });
-    
-    const addRipple = (x, y) => {
-        ripplesRef.current.push(new Ripple(x, y));
-    };
+        return localStorage.getItem('theme') || 'dark'
+    })
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        document.documentElement.setAttribute('data-theme', theme)
+        localStorage.setItem('theme', theme)
+    }, [theme])
 
-
-    const startMenuRef = useRef(null);
+    const startMenuRef = useRef(null)
     const dragStartRef = useRef({ x: 0, y: 0 })
     const windowRef = useRef(null)
-    const titlebarRef = useRef(null);
-
-    const handleWindowDragStart = (e) => {
-        if (e.target.closest('.window-controls')) return;
-        setIsDragging(true);
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        dragStartRef.current = { x: clientX, y: clientY };
-    };
 
     const clampWindowPos = (pos) => {
-        const maxX = window.innerWidth - 300;  // asumsi min lebar window 300px
-        const maxY = window.innerHeight - 150; // asumsi min tinggi 150px
+        const maxX = window.innerWidth - 300
+        const maxY = window.innerHeight - 150
         return {
             x: Math.min(Math.max(pos.x, 0), maxX),
             y: Math.min(Math.max(pos.y, 0), maxY)
-        };
-    };
+        }
+    }
+
+    const handleWindowDragStart = (e) => {
+        if (e.target.closest('.window-controls')) return
+        setIsDragging(true)
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY
+        dragStartRef.current = { x: clientX, y: clientY }
+        e.preventDefault()
+    }
 
     const handleWindowDragMove = (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        ripplesRef.current.push(new Ripple(clientX, clientY));
-        const dx = clientX - dragStartRef.current.x;
-        const dy = clientY - dragStartRef.current.y;
+        if (!isDragging) return
+        e.preventDefault()
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY
+        const dx = clientX - dragStartRef.current.x
+        const dy = clientY - dragStartRef.current.y
         setWindowPos(prev => clampWindowPos({
             x: prev.x + dx,
             y: prev.y + dy
-        }));
-        dragStartRef.current = { x: clientX, y: clientY };
-    };
+        }))
+        dragStartRef.current = { x: clientX, y: clientY }
+    }
 
     const handleWindowDragEnd = () => {
-        setIsDragging(false);
-    };
-
-    useEffect(() => {
-        const titlebar = titlebarRef.current;
-        if (!titlebar) return;
-
-        const handleTouchStart = (e) => {
-            if (e.target.closest('.window-controls')) return;
-            setIsDragging(true);
-            const touch = e.touches[0];
-            dragStartRef.current = { x: touch.clientX, y: touch.clientY };
-            e.preventDefault(); // mencegah scroll halaman
-        };
-
-        const handleTouchMove = (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const clientX = touch.clientX;
-            const clientY = touch.clientY;
-
-            // Tambahkan ripple setiap move (tanpa throttle agar mengikuti jari)
-            ripplesRef.current.push(new Ripple(clientX, clientY));
-
-            const dx = clientX - dragStartRef.current.x;
-            const dy = clientY - dragStartRef.current.y;
-            setWindowPos(prev => clampWindowPos({
-                x: prev.x + dx,
-                y: prev.y + dy
-            }));
-            dragStartRef.current = { x: clientX, y: clientY };
-        };
-
-        const handleTouchEnd = () => {
-            setIsDragging(false);
-        };
-
-        titlebar.addEventListener('touchstart', handleTouchStart, { passive: false });
-        titlebar.addEventListener('touchmove', handleTouchMove, { passive: false });
-        titlebar.addEventListener('touchend', handleTouchEnd);
-
-        return () => {
-            titlebar.removeEventListener('touchstart', handleTouchStart);
-            titlebar.removeEventListener('touchmove', handleTouchMove);
-            titlebar.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, [isDragging]); // isDragging sebagai dependency agar handler move bisa membaca state terbaru
+        setIsDragging(false)
+    }
 
     const toggleTheme = () => {
-        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-    };
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    }
 
     class Ripple {
         constructor(x, y) {
@@ -128,17 +74,14 @@ export default function Base() {
             this.speed = 1.5
             this.fadeSpeed = 0.008
         }
-
         update() {
             this.radius += this.speed
             this.opacity -= this.fadeSpeed
             return this.opacity > 0 && this.radius < this.maxRadius
         }
-
         draw(ctx) {
             const rippleRGB = getComputedStyle(document.documentElement)
-                .getPropertyValue('--ripple-color').trim();
-
+                .getPropertyValue('--ripple-color').trim()
             ctx.beginPath()
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
             ctx.strokeStyle = `rgba(${rippleRGB}, ${this.opacity * 0.3})`
@@ -150,7 +93,6 @@ export default function Base() {
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
-
         const ctx = canvas.getContext('2d')
 
         const resizeCanvas = () => {
@@ -160,22 +102,16 @@ export default function Base() {
         resizeCanvas()
         window.addEventListener('resize', resizeCanvas)
 
-        const rippleColor = getComputedStyle(document.documentElement)
-            .getPropertyValue('--ripple-color').trim();
-
         const drawGrid = (ctx, width, height) => {
             const gridSize = 40
-
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'
             ctx.lineWidth = 0.5
-
             for (let x = 0; x <= width; x += gridSize) {
                 ctx.beginPath()
                 ctx.moveTo(x, 0)
                 ctx.lineTo(x, height)
                 ctx.stroke()
             }
-
             for (let y = 0; y <= height; y += gridSize) {
                 ctx.beginPath()
                 ctx.moveTo(0, y)
@@ -187,15 +123,11 @@ export default function Base() {
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             drawGrid(ctx, canvas.width, canvas.height)
-
             ripplesRef.current = ripplesRef.current.filter(ripple => {
                 const isAlive = ripple.update()
-                if (isAlive) {
-                    ripple.draw(ctx)
-                }
+                if (isAlive) ripple.draw(ctx)
                 return isAlive
             })
-
             animationFrameRef.current = requestAnimationFrame(animate)
         }
 
@@ -230,21 +162,18 @@ export default function Base() {
             window.removeEventListener('mousemove', handleMouseMove)
             window.removeEventListener('click', handleMouseClick)
             window.removeEventListener('mouseup', handleMouseUp)
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current)
-            }
+            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         }
-    }, [isDragging, windowPos.x, windowPos.y]) // Fixed dependency array
-
+    }, [])
 
     const centerWindow = () => {
-        const windowWidth = Math.min(500, window.innerWidth - 40);
-        const windowHeight = 300;
+        const windowWidth = Math.min(500, window.innerWidth - 40)
+        const windowHeight = 300
         setWindowPos(clampWindowPos({
             x: (window.innerWidth - windowWidth) / 2,
             y: (window.innerHeight - windowHeight) / 2
-        }));
-    };
+        }))
+    }
 
     const openWindow = (type) => {
         setActiveWindow(type)
@@ -255,21 +184,19 @@ export default function Base() {
         setActiveWindow(null)
     }
 
-    const toggleStartMenu = () => setStartMenuOpen(prev => !prev);
+    const toggleStartMenu = () => setStartMenuOpen(prev => !prev)
 
-    // Tutup start menu jika klik di luar
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (startMenuRef.current && !startMenuRef.current.contains(event.target) &&
                 !event.target.closest('.taskbar-btn')) {
-                setStartMenuOpen(false);
+                setStartMenuOpen(false)
             }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
-    // Social media links
     const socialLinks = [
         { name: 'GitHub', icon: 'bi-github', url: 'https://github.com/lotzbrenn' },
         { name: 'Facebook', icon: 'bi-facebook', url: 'https://facebook.com/lotzbrenn' },
@@ -278,32 +205,11 @@ export default function Base() {
         { name: 'Discord', icon: 'bi-discord', url: 'https://discord.com/users/746300281465077830' }
     ]
 
-    // Desktop shortcuts data
     const desktopShortcuts = [
-        {
-            name: 'Socials',
-            icon: 'bi-people-fill',
-            action: 'socials',
-            description: 'Connect with me'
-        },
-        {
-            name: 'Projects',
-            icon: 'bi-folder-fill',
-            action: 'projects',
-            description: 'My work'
-        },
-        {
-            name: 'Contacts',
-            icon: 'bi-envelope-fill',
-            action: 'contacts',
-            description: 'Get in touch'
-        },
-        {
-            name: 'Mystery',
-            icon: 'bi-gift-fill',
-            action: 'coming-soon',
-            description: '???'
-        }
+        { name: 'Socials', icon: 'bi-people-fill', action: 'socials', description: 'Connect with me' },
+        { name: 'Projects', icon: 'bi-folder-fill', action: 'projects', description: 'My work' },
+        { name: 'Contacts', icon: 'bi-envelope-fill', action: 'contacts', description: 'Get in touch' },
+        { name: 'Mystery', icon: 'bi-gift-fill', action: 'coming-soon', description: '???' }
     ]
 
     const renderWindowContent = () => {
@@ -312,20 +218,13 @@ export default function Base() {
                 return (
                     <div className="window-content-socials">
                         {socialLinks.map((social, index) => (
-                            <a
-                                key={index}
-                                href={social.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="social-link"
-                            >
+                            <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="social-link">
                                 <i className={`bi ${social.icon}`}></i>
                                 <span>{social.name}</span>
                             </a>
                         ))}
                     </div>
                 )
-
             case 'projects':
                 return (
                     <div className="window-content-projects">
@@ -333,19 +232,13 @@ export default function Base() {
                             <i className="bi bi-folder2-open"></i>
                             <h3>My Projects</h3>
                             <p>Explore my projects and contributions on GitHub</p>
-                            <a
-                                href="https://github.com/lotzbrenn"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="visit-btn"
-                            >
+                            <a href="https://github.com/lotzbrenn" target="_blank" rel="noopener noreferrer" className="visit-btn">
                                 <i className="bi bi-box-arrow-up-right"></i>
                                 Visit GitHub Profile
                             </a>
                         </div>
                     </div>
                 )
-
             case 'contacts':
                 return (
                     <div className="window-content-contacts">
@@ -360,7 +253,6 @@ export default function Base() {
                         </div>
                     </div>
                 )
-
             case 'coming-soon':
                 return (
                     <div className="window-content-coming-soon">
@@ -375,7 +267,6 @@ export default function Base() {
                         </div>
                     </div>
                 )
-
             default:
                 return null
         }
@@ -383,59 +274,25 @@ export default function Base() {
 
     return (
         <>
-            <canvas
-                ref={canvasRef}
-                className="base-canvas"
-            />
-
-            {/* Desktop Shortcuts - Area Kiri */}
+            <canvas ref={canvasRef} className="base-canvas" />
             <div className="desktop-shortcuts">
                 {desktopShortcuts.map((shortcut, index) => (
-                    <button
-                        key={index}
-                        className="desktop-shortcut"
-                        onClick={() => openWindow(shortcut.action)}
-                        onDoubleClick={() => openWindow(shortcut.action)}
-                        title={shortcut.description}
-                    >
-                        <div className="shortcut-icon">
-                            <i className={`bi ${shortcut.icon}`}></i>
-                        </div>
+                    <button key={index} className="desktop-shortcut" onClick={() => openWindow(shortcut.action)} onDoubleClick={() => openWindow(shortcut.action)} title={shortcut.description}>
+                        <div className="shortcut-icon"><i className={`bi ${shortcut.icon}`}></i></div>
                         <span className="shortcut-name">{shortcut.name}</span>
                     </button>
                 ))}
             </div>
-
-            {/* Taskbar - Bawah */}
             <div className="taskbar">
                 <div className="taskbar-left">
                     <button className="taskbar-btn" onClick={toggleStartMenu}>
                         <i className="bi bi-grid-3x3-gap-fill"></i>
                     </button>
                 </div>
-
-
-                {/* <div className="taskbar-center">
-                    {desktopShortcuts.map((shortcut, index) => (
-                        <button
-                            key={index}
-                            className={`taskbar-shortcut ${activeWindow === shortcut.action ? 'active' : ''}`}
-                            onClick={() => openWindow(shortcut.action)}
-                            title={shortcut.description}
-                        >
-                            <i className={`bi ${shortcut.icon}`}></i>
-                        </button>
-                    ))}
-                </div> */}
-
                 <div className="taskbar-right">
-                    <span className="taskbar-time">
-                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <span className="taskbar-time">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </div>
-
-            {/* Start Menu Card */}
             {startMenuOpen && (
                 <div className="start-menu" ref={startMenuRef}>
                     <div className="start-menu-header">
@@ -444,63 +301,30 @@ export default function Base() {
                     </div>
                     <div className="start-menu-grid">
                         {desktopShortcuts.map((shortcut, idx) => (
-                            <button
-                                key={idx}
-                                className="start-menu-item"
-                                onClick={() => {
-                                    openWindow(shortcut.action);
-                                    setStartMenuOpen(false);
-                                }}
-                            >
+                            <button key={idx} className="start-menu-item" onClick={() => { openWindow(shortcut.action); setStartMenuOpen(false) }}>
                                 <i className={`bi ${shortcut.icon}`}></i>
                                 <span>{shortcut.name}</span>
                             </button>
                         ))}
-                        <button
-                            className="start-menu-item"
-                            onClick={() => {
-                                toggleTheme();
-                            }}
-                        >
+                        <button className="start-menu-item" onClick={() => { toggleTheme(); setStartMenuOpen(false) }}>
                             <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
                             <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                         </button>
                     </div>
                 </div>
             )}
-
-            {/* Modal Window */}
             {activeWindow && (
-                <div
-                    ref={windowRef}
-                    className="system-window"
-                    style={{
-                        left: `${windowPos.x}px`,
-                        top: `${windowPos.y}px`
-                    }}
-                >
-                    <div
-                        ref={titlebarRef}
-                        className="window-titlebar"
-                        onMouseDown={handleWindowDragStart}
-                    >
+                <div ref={windowRef} className="system-window" style={{ left: `${windowPos.x}px`, top: `${windowPos.y}px` }}>
+                    <div className="window-titlebar" onMouseDown={handleWindowDragStart} onTouchStart={handleWindowDragStart} onTouchMove={handleWindowDragMove} onTouchEnd={handleWindowDragEnd}>
                         <div className="window-title">
-                            <i className={`bi ${activeWindow === 'socials' ? 'bi-people' :
-                                activeWindow === 'projects' ? 'bi-code-slash' :
-                                    activeWindow === 'contacts' ? 'bi-envelope' :
-                                        'bi-question-circle'}`}></i>
+                            <i className={`bi ${activeWindow === 'socials' ? 'bi-people' : activeWindow === 'projects' ? 'bi-code-slash' : activeWindow === 'contacts' ? 'bi-envelope' : 'bi-question-circle'}`}></i>
                             <span>{activeWindow.charAt(0).toUpperCase() + activeWindow.slice(1)}</span>
                         </div>
                         <div className="window-controls">
-                            <button className="window-close" onClick={closeWindow}>
-                                <i className="bi bi-x-lg"></i>
-                            </button>
+                            <button className="window-close" onClick={closeWindow}><i className="bi bi-x-lg"></i></button>
                         </div>
                     </div>
-
-                    <div className="window-body">
-                        {renderWindowContent()}
-                    </div>
+                    <div className="window-body">{renderWindowContent()}</div>
                 </div>
             )}
         </>

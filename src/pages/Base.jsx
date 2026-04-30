@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Base.css'
-import StartMenu from '../components/startMenu'
-import Taskbar from '../components/TaskBar'
+import StartMenu from '../components/StartMenu'
+import Taskbar from '../components/Taskbar'
 
 export default function Base() {
     const canvasRef = useRef(null)

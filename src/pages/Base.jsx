@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './Base.css'
+import StartMenu from '../components/startMenu'
+import Taskbar from '../components/TaskBar'
 
 export default function Base() {
     const canvasRef = useRef(null)
     const mouseRef = useRef({ x: 0, y: 0 })
     const ripplesRef = useRef([])
     const animationFrameRef = useRef(null)
+    const navigate = useNavigate()
 
     const [activeWindow, setActiveWindow] = useState(null)
     const [isDragging, setIsDragging] = useState(false)
     const [windowPos, setWindowPos] = useState({ x: 0, y: 0 })
     const [startMenuOpen, setStartMenuOpen] = useState(false)
-    const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'dark'
-    })
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
@@ -186,16 +188,6 @@ export default function Base() {
 
     const toggleStartMenu = () => setStartMenuOpen(prev => !prev)
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (startMenuRef.current && !startMenuRef.current.contains(event.target) &&
-                !event.target.closest('.taskbar-btn')) {
-                setStartMenuOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
 
     const socialLinks = [
         { name: 'GitHub', icon: 'bi-github', url: 'https://github.com/lotzbrenn' },
@@ -206,11 +198,23 @@ export default function Base() {
     ]
 
     const desktopShortcuts = [
+        { name: 'About', icon: 'bi-file-earmark-person-fill', action: 'about', navigateTo: '/about', description: 'About me' },
         { name: 'Socials', icon: 'bi-people-fill', action: 'socials', description: 'Connect with me' },
         { name: 'Projects', icon: 'bi-folder-fill', action: 'projects', description: 'My work' },
         { name: 'Contacts', icon: 'bi-envelope-fill', action: 'contacts', description: 'Get in touch' },
         { name: 'Mystery', icon: 'bi-gift-fill', action: 'coming-soon', description: '???' }
     ]
+
+    const handleShortcutClick = (shortcut) => {
+        if (shortcut.navigateTo) {
+            navigate(shortcut.navigateTo)
+            setStartMenuOpen(false)  // tutup start menu setelah navigasi
+            if (activeWindow) setActiveWindow(null) // opsional: tutup window jika terbuka
+        } else {
+            openWindow(shortcut.action)
+            setStartMenuOpen(false)
+        }
+    }
 
     const renderWindowContent = () => {
         switch (activeWindow) {
@@ -277,42 +281,32 @@ export default function Base() {
             <canvas ref={canvasRef} className="base-canvas" />
             <div className="desktop-shortcuts">
                 {desktopShortcuts.map((shortcut, index) => (
-                    <button key={index} className="desktop-shortcut" onClick={() => openWindow(shortcut.action)} onDoubleClick={() => openWindow(shortcut.action)} title={shortcut.description}>
-                        <div className="shortcut-icon"><i className={`bi ${shortcut.icon}`}></i></div>
+                    <button
+                        key={index}
+                        className="desktop-shortcut"
+                        onClick={() => handleShortcutClick(shortcut)}
+                        onDoubleClick={() => handleShortcutClick(shortcut)}
+                        title={shortcut.description}
+                    >
+                        <div className="shortcut-icon">
+                            <i className={`bi ${shortcut.icon}`}></i>
+                        </div>
                         <span className="shortcut-name">{shortcut.name}</span>
                     </button>
                 ))}
             </div>
-            <div className="taskbar">
-                <div className="taskbar-left">
-                    <button className="taskbar-btn" onClick={toggleStartMenu}>
-                        <i className="bi bi-grid-3x3-gap-fill"></i>
-                    </button>
-                </div>
-                <div className="taskbar-right">
-                    <span className="taskbar-time">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-            </div>
-            {startMenuOpen && (
-                <div className="start-menu" ref={startMenuRef}>
-                    <div className="start-menu-header">
-                        <i className="bi bi-person-circle"></i>
-                        <span>User</span>
-                    </div>
-                    <div className="start-menu-grid">
-                        {desktopShortcuts.map((shortcut, idx) => (
-                            <button key={idx} className="start-menu-item" onClick={() => { openWindow(shortcut.action); setStartMenuOpen(false) }}>
-                                <i className={`bi ${shortcut.icon}`}></i>
-                                <span>{shortcut.name}</span>
-                            </button>
-                        ))}
-                        <button className="start-menu-item" onClick={() => { toggleTheme(); setStartMenuOpen(false) }}>
-                            <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
-                            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-                        </button>
-                    </div>
-                </div>
-            )}
+
+            <Taskbar onStartClick={() => setStartMenuOpen(prev => !prev)} />
+
+            <StartMenu
+                isOpen={startMenuOpen}
+                onClose={() => setStartMenuOpen(false)}
+                shortcuts={desktopShortcuts}
+                onShortcutClick={handleShortcutClick}   // ← langsung tanpa arrow function
+                theme={theme}
+                onToggleTheme={toggleTheme}
+            />
+
             {activeWindow && (
                 <div ref={windowRef} className="system-window" style={{ left: `${windowPos.x}px`, top: `${windowPos.y}px` }}>
                     <div className="window-titlebar" onMouseDown={handleWindowDragStart} onTouchStart={handleWindowDragStart} onTouchMove={handleWindowDragMove} onTouchEnd={handleWindowDragEnd}>

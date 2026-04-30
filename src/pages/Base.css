@@ -130,7 +130,14 @@ body {
   z-index: 20;
 }
 
-.taskbar-left,
+.taskbar-left {
+  display: flex;
+  gap: 5px;
+}
+
+.taskbar-home {
+  margin-left: 5px;
+}
 .taskbar-right {
   display: flex;
   align-items: center;

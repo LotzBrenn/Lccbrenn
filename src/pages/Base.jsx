@@ -22,7 +22,6 @@ export default function Base() {
         localStorage.setItem('theme', theme)
     }, [theme])
 
-    const startMenuRef = useRef(null)
     const dragStartRef = useRef({ x: 0, y: 0 })
     const windowRef = useRef(null)
 

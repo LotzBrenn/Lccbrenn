@@ -31,7 +31,7 @@ export default function StartMenu({ isOpen, onClose, shortcuts, onShortcutClick,
                         <span>{shortcut.name}</span>
                     </button>
                 ))}
-                <button className="start-menu-item" onClick={() => { onToggleTheme(); onClose() }}>
+                <button className="start-menu-item" onClick={() => { onToggleTheme() }}>
                     <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
                     <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                 </button>

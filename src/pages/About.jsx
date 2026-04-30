@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'  // tambahkan
 import Taskbar from '../components/Taskbar'
 import StartMenu from '../components/StartMenu'
@@ -7,6 +7,7 @@ export default function About() {
     const navigate = useNavigate()  // tambahkan
     const [startMenuOpen, setStartMenuOpen] = useState(false)
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+    
 
     const shortcuts = [
         { name: 'About', icon: 'bi-file-earmark-person-fill', action: 'about', navigateTo: '/about' },
@@ -16,7 +17,15 @@ export default function About() {
         { name: 'Mystery', icon: 'bi-gift-fill', action: 'coming-soon' }
     ]
 
-    const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    }
+
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme)
+        localStorage.setItem('theme', theme)
+    }, [theme])
 
     // Handler yang menerima object shortcut
     const handleShortcutClick = (shortcut) => {
@@ -31,8 +40,12 @@ export default function About() {
 
     return (
         <div style={{ background: 'var(--bg-primary)', height: '100vh', paddingTop: '20px', color: 'var(--text-primary)' }}>
+
+
             <h1>About Page</h1>
             <p>This is another page. Taskbar and Start Menu are reusable.</p>
+
+
             <Taskbar onStartClick={() => setStartMenuOpen(prev => !prev)} />
             <StartMenu
                 isOpen={startMenuOpen}

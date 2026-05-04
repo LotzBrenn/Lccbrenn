@@ -2,7 +2,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export default function Taskbar({ onStartClick }) {
+export default function Taskbar({ onStartClick, onSettingsClick }) {
     const navigate = useNavigate()
 
     const handleHomeClick = () => {
@@ -17,6 +17,9 @@ export default function Taskbar({ onStartClick }) {
                 </button>
                 <button className="taskbar-btn taskbar-home" onClick={handleHomeClick}>
                     <i className="bi bi-house-door-fill"></i>
+                </button>
+                <button className="taskbar-btn" onClick={onSettingsClick}>
+                    <i className="bi bi-gear-fill"></i>
                 </button>
             </div>
             <div className="taskbar-right">

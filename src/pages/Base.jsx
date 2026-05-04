@@ -38,28 +38,16 @@ export default function Base() {
         }
     }
 
-    const handleWindowDragStart = (e) => {
-        if (e.target.closest('.window-controls')) return
-        setIsDragging(true)
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY
-        dragStartRef.current = { x: clientX, y: clientY }
-        e.preventDefault()
-    }
 
-    const handleWindowDragMove = (e) => {
-        if (!isDragging) return
-        e.preventDefault()
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY
-        const dx = clientX - dragStartRef.current.x
-        const dy = clientY - dragStartRef.current.y
-        setWindowPos(prev => clampWindowPos({
-            x: prev.x + dx,
-            y: prev.y + dy
-        }))
-        dragStartRef.current = { x: clientX, y: clientY }
-    }
+    const handleWindowDragStart = (e) => {
+        if (e.target.closest('.window-controls')) return;
+        setIsDragging(true);
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartRef.current = { x: clientX, y: clientY };
+        e.preventDefault();
+        e.stopPropagation();
+    };
 
     const handleWindowDragEnd = () => {
         setIsDragging(false)
@@ -122,6 +110,35 @@ export default function Base() {
             ctx.stroke()
         }
     }
+    useEffect(() => {
+        if (!isDragging) return;
+
+        const handleGlobalMove = (e) => {
+            if (!isDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - dragStartRef.current.x;
+            const dy = clientY - dragStartRef.current.y;
+            setWindowPos(prev => clampWindowPos({ x: prev.x + dx, y: prev.y + dy }));
+            dragStartRef.current = { x: clientX, y: clientY };
+        };
+
+        const handleGlobalEnd = () => {
+            setIsDragging(false);
+        };
+
+        window.addEventListener('mousemove', handleGlobalMove);
+        window.addEventListener('mouseup', handleGlobalEnd);
+        window.addEventListener('touchmove', handleGlobalMove, { passive: false });
+        window.addEventListener('touchend', handleGlobalEnd);
+
+        return () => {
+            window.removeEventListener('mousemove', handleGlobalMove);
+            window.removeEventListener('mouseup', handleGlobalEnd);
+            window.removeEventListener('touchmove', handleGlobalMove);
+            window.removeEventListener('touchend', handleGlobalEnd);
+        };
+    }, [isDragging, setWindowPos, clampWindowPos, dragStartRef]);
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -351,7 +368,7 @@ export default function Base() {
 
             {activeWindow && (
                 <div ref={windowRef} className="system-window" style={{ left: `${windowPos.x}px`, top: `${windowPos.y}px` }}>
-                    <div className="window-titlebar" onMouseDown={handleWindowDragStart} onTouchStart={handleWindowDragStart} onTouchMove={handleWindowDragMove} onTouchEnd={handleWindowDragEnd}>
+                    <div className="window-titlebar" onMouseDown={handleWindowDragStart} onTouchStart={handleWindowDragStart}>
                         <div className="window-title">
                             <i className={`bi ${activeWindow === 'socials' ? 'bi-people' : activeWindow === 'projects' ? 'bi-code-slash' : activeWindow === 'contacts' ? 'bi-envelope' : 'bi-question-circle'}`}></i>
                             <span>{activeWindow.charAt(0).toUpperCase() + activeWindow.slice(1)}</span>

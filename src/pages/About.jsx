@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Taskbar from '../components/Taskbar'
 import StartMenu from '../components/StartMenu'
@@ -11,13 +11,13 @@ export default function About() {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
     const [userName, setUserName] = useState(() => localStorage.getItem('userName') || 'User')
     const [showNameModal, setShowNameModal] = useState(false)
-    
+
     // State untuk window
     const [activeWindow, setActiveWindow] = useState(null)
     const [isDragging, setIsDragging] = useState(false)
     const [windowPos, setWindowPos] = useState({ x: 0, y: 0 })
-    const dragStartRef = { current: { x: 0, y: 0 } }
-    const windowRef = React.useRef(null)
+    const dragStartRef = useRef({ x: 0, y: 0 })
+    const windowRef = useRef(null)
 
     // Data konten (sama seperti Base)
     const socialLinks = [
@@ -46,17 +46,19 @@ export default function About() {
     }
 
     const handleWindowDragStart = (e) => {
-        if (e.target.closest('.window-controls')) return
-        setIsDragging(true)
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY
-        dragStartRef.current = { x: clientX, y: clientY }
-        e.preventDefault()
-    }
+        if (e.target.closest('.window-controls')) return;
+        setIsDragging(true);
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartRef.current = { x: clientX, y: clientY };
+        e.preventDefault();
+        e.stopPropagation();
+    };
 
     const handleWindowDragMove = (e) => {
         if (!isDragging) return
         e.preventDefault()
+        e.stopPropagation()
         const clientX = e.touches ? e.touches[0].clientX : e.clientX
         const clientY = e.touches ? e.touches[0].clientY : e.clientY
         const dx = clientX - dragStartRef.current.x
@@ -141,7 +143,6 @@ export default function About() {
                 return null
         }
     }
-
     const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark')
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
@@ -151,6 +152,36 @@ export default function About() {
     useEffect(() => {
         localStorage.setItem('userName', userName)
     }, [userName])
+
+    useEffect(() => {
+        if (!isDragging) return;
+
+        const handleGlobalMove = (e) => {
+            if (!isDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - dragStartRef.current.x;
+            const dy = clientY - dragStartRef.current.y;
+            setWindowPos(prev => clampWindowPos({ x: prev.x + dx, y: prev.y + dy }));
+            dragStartRef.current = { x: clientX, y: clientY };
+        };
+
+        const handleGlobalEnd = () => {
+            setIsDragging(false);
+        };
+
+        window.addEventListener('mousemove', handleGlobalMove);
+        window.addEventListener('mouseup', handleGlobalEnd);
+        window.addEventListener('touchmove', handleGlobalMove, { passive: false });
+        window.addEventListener('touchend', handleGlobalEnd);
+
+        return () => {
+            window.removeEventListener('mousemove', handleGlobalMove);
+            window.removeEventListener('mouseup', handleGlobalEnd);
+            window.removeEventListener('touchmove', handleGlobalMove);
+            window.removeEventListener('touchend', handleGlobalEnd);
+        };
+    }, [isDragging, setWindowPos, clampWindowPos, dragStartRef]);
 
     const openNameModal = () => setShowNameModal(true)
     const closeNameModal = () => setShowNameModal(false)
@@ -179,7 +210,7 @@ export default function About() {
             {/* Window Modal */}
             {activeWindow && (
                 <div ref={windowRef} className="system-window" style={{ left: `${windowPos.x}px`, top: `${windowPos.y}px` }}>
-                    <div className="window-titlebar" onMouseDown={handleWindowDragStart} onTouchStart={handleWindowDragStart} onTouchMove={handleWindowDragMove} onTouchEnd={handleWindowDragEnd}>
+                    <div className="window-titlebar" onMouseDown={handleWindowDragStart}>
                         <div className="window-title">
                             <i className={`bi ${activeWindow === 'socials' ? 'bi-people' : activeWindow === 'projects' ? 'bi-code-slash' : 'bi-envelope'}`}></i>
                             <span>{activeWindow.charAt(0).toUpperCase() + activeWindow.slice(1)}</span>

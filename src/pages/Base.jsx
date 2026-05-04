@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import './Base.css'
 import StartMenu from '../components/StartMenu'
 import Taskbar from '../components/Taskbar'
+import WelcomeCard from '../components/WelcomeCard'
+import NameModal from '../components/NameModal'
 
 export default function Base() {
     const canvasRef = useRef(null)
@@ -16,6 +18,8 @@ export default function Base() {
     const [windowPos, setWindowPos] = useState({ x: 0, y: 0 })
     const [startMenuOpen, setStartMenuOpen] = useState(false)
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+    const [showNameModal, setShowNameModal] = useState(false)
+
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
@@ -63,6 +67,34 @@ export default function Base() {
 
     const toggleTheme = () => {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    }
+
+    const closeWelcome = () => {
+        setShowWelcome(false)
+        localStorage.setItem('welcomeSeen', 'true')
+    }
+
+    const [userName, setUserName] = useState(() => {
+        return localStorage.getItem('userName') || 'User'
+    })
+
+    const openNameModal = () => setShowNameModal(true)
+    const closeNameModal = () => setShowNameModal(false)
+    const updateUserName = (newName) => {
+        setUserName(newName)
+        localStorage.setItem('userName', newName)
+    }
+
+    const [showWelcome, setShowWelcome] = useState(() => {
+        const hasSeen = localStorage.getItem('welcomeSeen')
+        return !hasSeen  // true jika belum pernah lihat
+    })
+
+    const saveUserName = (name) => {
+        setUserName(name)
+        localStorage.setItem('userName', name)
+        localStorage.setItem('welcomeSeen', 'true')
+        setShowWelcome(false)
     }
 
     class Ripple {
@@ -277,6 +309,7 @@ export default function Base() {
 
     return (
         <>
+            {showWelcome && <WelcomeCard onSave={saveUserName} />}
             <canvas ref={canvasRef} className="base-canvas" />
             <div className="desktop-shortcuts">
                 {desktopShortcuts.map((shortcut, index) => (
@@ -297,6 +330,14 @@ export default function Base() {
 
             <Taskbar onStartClick={() => setStartMenuOpen(prev => !prev)} />
 
+            {showNameModal && (
+                <NameModal
+                    currentName={userName}
+                    onSave={updateUserName}
+                    onClose={closeNameModal}
+                />
+            )}
+
             <StartMenu
                 isOpen={startMenuOpen}
                 onClose={() => setStartMenuOpen(false)}
@@ -304,6 +345,8 @@ export default function Base() {
                 onShortcutClick={handleShortcutClick}   // ← langsung tanpa arrow function
                 theme={theme}
                 onToggleTheme={toggleTheme}
+                userName={userName}
+                onChangeName={openNameModal}
             />
 
             {activeWindow && (

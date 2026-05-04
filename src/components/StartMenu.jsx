@@ -1,7 +1,7 @@
 // src/components/StartMenu.jsx
 import React, { useEffect, useRef } from 'react'
 
-export default function StartMenu({ isOpen, onClose, shortcuts, onShortcutClick, theme, onToggleTheme }) {
+export default function StartMenu({ isOpen, onClose, shortcuts, onShortcutClick, theme, onToggleTheme, userName, onChangeName }) {
     const menuRef = useRef(null)
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export default function StartMenu({ isOpen, onClose, shortcuts, onShortcutClick,
         <div className="start-menu" ref={menuRef}>
             <div className="start-menu-header">
                 <i className="bi bi-person-circle"></i>
-                <span>User</span>
+                <span>{userName}</span>
             </div>
             <div className="start-menu-grid">
                 {shortcuts.map((shortcut, idx) => (
@@ -34,6 +34,10 @@ export default function StartMenu({ isOpen, onClose, shortcuts, onShortcutClick,
                 <button className="start-menu-item" onClick={() => { onToggleTheme() }}>
                     <i className={`bi ${theme === 'dark' ? 'bi-brightness-high-fill' : 'bi-moon-stars-fill'}`}></i>
                     <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+                </button>
+                <button className="start-menu-item" onClick={() => { onChangeName(); onClose() }}>
+                    <i className="bi bi-pencil-square"></i>
+                    <span>Change Name</span>
                 </button>
             </div>
         </div>
